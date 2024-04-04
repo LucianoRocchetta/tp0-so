@@ -19,7 +19,6 @@ int main(void)
 
 	// Usando el logger creado previamente
 	// Escribi: "Hola! Soy un log"
-	logger = log_create("./tp0.log", "TP0", true, LOG_LEVEL_INFO);
 	log_info(logger, "Hola! Soy un log");
 
 	/* ---------------- ARCHIVOS DE CONFIGURACION ---------------- */
@@ -28,15 +27,12 @@ int main(void)
 
 	// Usando el config creado previamente, leemos los valores del config y los 
 	// dejamos en las variables 'ip', 'puerto' y 'valor' 
-	config = config_create("/home/utnso/Documents/tp0/tp0-so/client/cliente.config");
 
 	ip = config_get_string_value(config, "IP");
 	puerto = config_get_string_value(config, "PUERTO");
 	valor = config_get_string_value(config, "CLAVE");
 
 	// Loggeamos el valor de config
-
-	
 	log_info(logger, "IP: %s\nPuerto: %s\nClave: %s", ip, puerto, valor);
 
 	/* ---------------- LEER DE CONSOLA ---------------- */
@@ -65,6 +61,7 @@ int main(void)
 t_log* iniciar_logger(void)
 {
 	t_log* nuevo_logger;
+	nuevo_logger = log_create("./tp0.log", "TP0", true, LOG_LEVEL_INFO);
 
 	return nuevo_logger;
 }
@@ -72,6 +69,7 @@ t_log* iniciar_logger(void)
 t_config* iniciar_config(void)
 {
 	t_config* nuevo_config;
+	nuevo_config = config_create("/home/utnso/Documents/tp0/tp0-so/client/cliente.config");
 
 	return nuevo_config;
 }
@@ -87,7 +85,7 @@ void leer_consola(t_log* logger)
 	while(true) {
 		leido = readline(">");
 		if (!strcmp(leido, "")) {
-			return false;
+			break;
 		}
 		log_info(logger, leido);
 		free(leido);
@@ -101,13 +99,22 @@ void paquete(int conexion)
 {
 	// Ahora toca lo divertido!
 	char* leido;
-	t_paquete* paquete;
+	t_paquete* paquete = crear_paquete();
 
 	// Leemos y esta vez agregamos las lineas al paquete
-
+	while(true) {
+		leido = readline(">");
+		if (!strcmp(leido, "")) {
+			break;
+		}
+		agregar_a_paquete(paquete, leido, (strlen(leido) + 1));
+		free(leido);
+	}
+	enviar_paquete(paquete, conexion);
 
 	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	
+	free(leido);
+	eliminar_paquete(paquete);
 }
 
 void terminar_programa(int conexion, t_log* logger, t_config* config)
@@ -116,4 +123,5 @@ void terminar_programa(int conexion, t_log* logger, t_config* config)
 	  con las funciones de las commons y del TP mencionadas en el enunciado */
 	config_destroy(config);
 	log_destroy(logger);
+	liberar_conexion(conexion);
 }
